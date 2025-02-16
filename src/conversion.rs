@@ -107,9 +107,11 @@ impl<'a> Converter<'a> {
         let mut adlib_instrument_meta: [C67FMRegisters;32] = array::from_fn(|_| C67FMRegisters::default());
         for (index, sample) in self.pcm_instruments.iter().enumerate() {
             let meta = &mut pcm_instrument_meta[index];
+            if sample.flags & 1 != 0 {
+                meta.loop_start = sample.loop_begin;
+                meta.loop_end = sample.loop_end;
+            }
 
-            meta.loop_start = sample.loop_begin;
-            meta.loop_end = sample.loop_end;
             meta.sample_length = sample.audio.len() as u32;
         }
         for (index, instrument) in self.adlib_instruments.iter().enumerate() {
@@ -119,19 +121,20 @@ impl<'a> Converter<'a> {
 
             meta.modulator_characteristics = instrument.d00;
             meta.modulator_scale_and_output_level = instrument.d02 & 0x3F;
-            meta.modulator_scale_and_output_level |= (instrument.d02 & 0xC0).reverse_bits() << 6;
+            meta.modulator_scale_and_output_level |= (instrument.d02 >> 6).reverse_bits() << 6;
             meta.modulator_attack_decay_level = instrument.d04;
             meta.modulator_sustain_release_level = instrument.d06;
             meta.modulator_wave_select = instrument.d08;
 
             meta.carrier_characteristics = instrument.d01;
             meta.carrier_scale_and_output_level = instrument.d03 & 0x3F;
-            meta.carrier_scale_and_output_level |= (instrument.d03 & 0xC0).reverse_bits() << 6;
+            meta.carrier_scale_and_output_level |= (instrument.d03 >> 6).reverse_bits() << 6;
             meta.carrier_attack_decay_level = instrument.d05;
             meta.carrier_sustain_release_level = instrument.d07;
             meta.carrier_wave_select = instrument.d09;
         }
 
+        module.header.playlist.fill(0xFF);
         let mut order_index = 0usize;
         for order in &self.module.orders {
             if *order == 254 {
@@ -168,8 +171,8 @@ impl<'a> Converter<'a> {
         module.header.instrument_meta = pcm_instrument_meta;
         module.header.adlib_instrument_filenames = adlib_instrument_filenames;
         module.header.adlib_instrument_meta = adlib_instrument_meta;
-        module.header.pattern_lengths = pattern_lengths;
-        module.header.pattern_pointers = pattern_offsets;
+        module.header.pattern_lengths = format_c67::Plist { list: pattern_lengths };
+        module.header.pattern_pointers = format_c67::Plist { list: pattern_offsets };
         module.pattern_data = pattern_data;
 
         module

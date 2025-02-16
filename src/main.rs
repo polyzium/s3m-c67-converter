@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write};
+use std::{fs::File, io::Write, env};
 
 use adlib::AdlibInstrument;
 use format_s3m::{S3MAdlibInstrument, S3MInstrument, S3MModule};
@@ -9,7 +9,8 @@ mod adlib;
 mod conversion;
 
 fn main() {
-    let module_file = File::open("/home/polyzium/Downloads/adlib.s3m").unwrap();
+    let args: Vec<String> = env::args().collect();
+    let module_file = File::open(&args[1]).unwrap();
     let module = S3MModule::load(module_file).unwrap();
     
     // for i in &module.instruments {
@@ -20,7 +21,7 @@ fn main() {
 
     let converter = conversion::Converter::new(&module);
     let converted_module = converter.convert();
-    println!("{:?}", &converted_module);
+    dbg!("{:?}", &converted_module);
     let serialized_module = converted_module.serialize();
     let mut file = File::create("out.c67").unwrap();
     file.write(&serialized_module).unwrap();

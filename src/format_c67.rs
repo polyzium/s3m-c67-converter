@@ -1,3 +1,25 @@
+use serde_big_array::BigArray;
+
+/* stupid serde bullshit */
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Plist {
+    #[serde(with = "BigArray")]
+    pub list: [u32; 128]
+}
+
+impl Default for Plist {
+    fn default() -> Self {
+        Plist {
+            list: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        }
+    }
+}
+
+
 #[derive(Debug)]
 #[repr(C)]
 pub struct C67ModuleHeader {
@@ -8,8 +30,8 @@ pub struct C67ModuleHeader {
     pub adlib_instrument_filenames: [u8;13*32], //fminsnames
     pub adlib_instrument_meta: [C67FMRegisters;32], //fminsbase
     pub playlist: [u8;256], //ordbase
-    pub pattern_pointers: [u32;128], //patoffbase
-    pub pattern_lengths: [u32;128], //patlenbase
+    pub pattern_pointers: Plist, //patoffbase
+    pub pattern_lengths: Plist, //patlenbase
 }
 
 impl Default for C67ModuleHeader {
@@ -22,8 +44,8 @@ impl Default for C67ModuleHeader {
             adlib_instrument_filenames: [0;13*32],
             adlib_instrument_meta: Default::default(),
             playlist: [0;256],
-            pattern_pointers: [0;128],
-            pattern_lengths: [0;128],
+            pattern_pointers: Plist::default(),
+            pattern_lengths: Plist::default(),
         }
     }
 }
@@ -51,12 +73,23 @@ impl C67Module {
         let mut data: Vec<u8> = Vec::new();
 
         data.push(self.header.speed);
+        //dbg!("{}", data.len());
         data.push(self.header.loop_order);
+        //dbg!("{}", data.len());
         data.extend_from_slice(&self.header.instrument_filenames);
+        //dbg!("{}", data.len());
         data.append(&mut bincode::serialize(&self.header.instrument_meta).unwrap());
+        //dbg!("{}", data.len());
         data.extend_from_slice(&self.header.adlib_instrument_filenames);
+        //dbg!("{}", data.len());
         data.append(&mut bincode::serialize(&self.header.adlib_instrument_meta).unwrap());
+        //dbg!("{}", data.len());
         data.extend_from_slice(&self.header.playlist);
+        //dbg!("{}", data.len());
+        data.extend_from_slice(&mut bincode::serialize(&self.header.pattern_pointers).unwrap());
+        //dbg!("{}", data.len());
+        data.extend_from_slice(&mut bincode::serialize(&self.header.pattern_lengths).unwrap());
+        //dbg!("{}", data.len());
         data.extend_from_slice(&self.pattern_data);
         data.extend_from_slice(&self.sample_data);
 
