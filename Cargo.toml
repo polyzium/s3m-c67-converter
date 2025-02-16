@@ -1,0 +1,10 @@
+[package]
+name = "s3m2c67"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.95"
+bincode = "1.3.3"
+byteorder = "1.5.0"
+serde = { version = "1.0.217", features = ["serde_derive"] }
