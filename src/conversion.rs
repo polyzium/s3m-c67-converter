@@ -160,6 +160,15 @@ impl<'a> Converter<'a> {
 
             pattern_index += 1;
         }
+        for index in pattern_index..128 {
+            let mut serialized_pattern = serialize_pattern(&self.generate_empty_pattern());
+            let serialized_pattern_length = serialized_pattern.len();
+            pattern_data.append(&mut serialized_pattern);
+            let offset = pattern_data.len()-serialized_pattern_length;
+            pattern_lengths[index] = serialized_pattern_length as u32;
+            pattern_offsets[index] = offset as u32;
+
+        }
 
         for sample in &self.pcm_instruments {
             for v in &sample.audio {
@@ -178,10 +187,22 @@ impl<'a> Converter<'a> {
         module
     }
 
+    pub fn generate_empty_pattern(&self) -> Vec<format_c67::C67PatternCommand> {
+        let mut commands: Vec<format_c67::C67PatternCommand> = Vec::new();
+        commands.push(format_c67::C67PatternCommand::Delay(64));
+        commands.push(format_c67::C67PatternCommand::End);
+        commands
+    }
+
     pub fn convert_pattern(&self, pattern: &S3MPattern) -> Vec<format_c67::C67PatternCommand> {
         let mut commands: Vec<format_c67::C67PatternCommand> = Vec::new();
 
         for (row_index, row) in pattern.iter().enumerate() {
+            if row_index == 63 {
+                commands.push(format_c67::C67PatternCommand::End);
+                break;
+            }
+
             for (channel_index, col) in row.iter().enumerate() {
                 if col.note < 254 {
                     let octave = col.note >> 4;
@@ -267,11 +288,8 @@ impl<'a> Converter<'a> {
                 }
             }
 
-            if row_index == 63 {
-                commands.push(format_c67::C67PatternCommand::End);
-            } else {
-                commands.push(format_c67::C67PatternCommand::Delay(1));
-            }
+            commands.push(format_c67::C67PatternCommand::Delay(1));
+            
         }
 
         commands
