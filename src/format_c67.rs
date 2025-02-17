@@ -148,8 +148,8 @@ impl C67PatternCommand {
                     Channel::FM(num) => data.push(4+num),
                 }
 
-                let mut byte1 = (command.instrument & 0x10) << 3;
-                byte1 |= (command.octave & 7) << 1;
+                let mut byte1 = ((command.instrument >> 5) & 1) << 7;
+                byte1 |= (command.octave & 7) << 4;
                 byte1 |= command.note & 0xF;
 
                 let mut byte2 = (command.instrument & 0xF) << 4;
@@ -174,6 +174,8 @@ impl C67PatternCommand {
                 data.push(0x60);
             },
         }
+
+        //dbg!(&data);
 
         data
     }

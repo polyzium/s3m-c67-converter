@@ -198,12 +198,14 @@ impl<'a> Converter<'a> {
         let mut commands: Vec<format_c67::C67PatternCommand> = Vec::new();
 
         for (row_index, row) in pattern.iter().enumerate() {
+            let mut saved_instrument: u8 = 0;
             if row_index == 63 {
                 commands.push(format_c67::C67PatternCommand::End);
                 break;
             }
 
             for (channel_index, col) in row.iter().enumerate() {
+                if col.instrument != 0 {saved_instrument = col.instrument;}
                 if col.note < 254 {
                     let octave = col.note >> 4;
                     let pitch = col.note & 0xF;
@@ -212,7 +214,7 @@ impl<'a> Converter<'a> {
                     let channel: Channel;
                     let mut volume: u8;
 
-                    match &self.module.instruments[(col.instrument-1) as usize] {
+                    match &self.module.instruments[(saved_instrument-1) as usize] {
                         S3MInstrument::Adlib(instrument) => {
                             volume = instrument.volume;
                             if self.module.channel_settings[channel_index] & 0x7F > 26 {
@@ -247,19 +249,19 @@ impl<'a> Converter<'a> {
                     }
 
                     let instrument: u8;
-                    match &self.module.instruments[(col.instrument as usize)-1] {
+                    match &self.module.instruments[(saved_instrument as usize)-1] {
                         S3MInstrument::Sample(_) => {
-                            let remapped_instrument = self.pcm_instrument_remap_table.get(&(col.instrument-1));
+                            let remapped_instrument = self.pcm_instrument_remap_table.get(&(saved_instrument-1));
                             if remapped_instrument.is_none() {
-                                println!("Discarding note with instrument {} as it is not mapped", col.instrument);
+                                println!("Discarding note with instrument {} as it is not mapped", saved_instrument);
                                 continue;
                             }
                             instrument = *remapped_instrument.unwrap();
                         },
                         S3MInstrument::Adlib(_) => {
-                            let remapped_instrument = self.adlib_instrument_remap_table.get(&(col.instrument-1));
+                            let remapped_instrument = self.adlib_instrument_remap_table.get(&(saved_instrument-1));
                             if remapped_instrument.is_none() {
-                                println!("Discarding note with instrument {} as it is not mapped", col.instrument);
+                                println!("Discarding note with instrument {} as it is not mapped", saved_instrument);
                                 continue;
                             }
                             instrument = *remapped_instrument.unwrap();
@@ -283,7 +285,7 @@ impl<'a> Converter<'a> {
 
                     commands.push(format_c67::C67PatternCommand::SetVolume(SetVolumeCommand {
                         channel,
-                        volume: (col.vol/4).clamp(0, 15),
+                        volume: if col.note == 254 {0} else {(col.vol/4).clamp(0, 15)},
                     }));
                 }
             }
@@ -291,6 +293,8 @@ impl<'a> Converter<'a> {
             commands.push(format_c67::C67PatternCommand::Delay(1));
             
         }
+
+        //dbg!(&commands);
 
         commands
     }
