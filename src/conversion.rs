@@ -245,7 +245,7 @@ impl<'a> Converter<'a> {
                     }
 
                     if col.vol <= 64 {
-                        volume = (col.vol/4).clamp(0, 15);
+                        volume = col.vol;
                     }
 
                     let instrument: u8;
@@ -273,7 +273,7 @@ impl<'a> Converter<'a> {
                         octave: octave & 7,
                         note: pitch,
                         instrument,
-                        volume,
+                        volume: (volume/4).clamp(0, 15),
                     }));
                 } else if col.note == 254 {
                     // added even though volume 0 is not silent :)
