@@ -279,10 +279,11 @@ impl<'a> Converter<'a> {
                 } else if col.note == 254 {
                     // added even though volume 0 is not silent :)
                     let channel: Channel;
-                    if self.module.channel_settings[channel_index] & 0x7F <= 15 { // is PCM channel
-                        channel = Channel::PCM(*self.pcm_channel_remap_table.get(&(self.module.channel_settings[channel_index] & 0x7F)).unwrap());
+                    let channel_setting = self.module.channel_settings[channel_index] & 0x7F;
+                    if channel_setting <= 15 { // is PCM channel
+                        channel = Channel::PCM(*self.pcm_channel_remap_table.get(&channel_setting).unwrap());
                     } else {
-                        channel = Channel::FM((self.module.channel_settings[channel_index] & 0x7F)-16);
+                        channel = Channel::FM(channel_setting-16);
                     }
 
                     commands.push(format_c67::C67PatternCommand::SetVolume(SetVolumeCommand {
@@ -291,10 +292,11 @@ impl<'a> Converter<'a> {
                     }));
                 } else if col.vol <= 64 {
                     let channel: Channel;
-                    if self.module.channel_settings[channel_index] & 0x7F <= 15 { // is PCM channel
-                        channel = Channel::PCM(*self.pcm_channel_remap_table.get(&(self.module.channel_settings[channel_index] & 0x7F)).unwrap());
+                    let channel_setting = self.module.channel_settings[channel_index] & 0x7F;
+                    if channel_setting <= 15 { // is PCM channel
+                        channel = Channel::PCM(*self.pcm_channel_remap_table.get(&channel_setting).unwrap());
                     } else {
-                        channel = Channel::FM((self.module.channel_settings[channel_index] & 0x7F)-16);
+                        channel = Channel::FM(channel_setting-16);
                     }
 
                     commands.push(format_c67::C67PatternCommand::SetVolume(SetVolumeCommand {
