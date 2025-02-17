@@ -275,6 +275,19 @@ impl<'a> Converter<'a> {
                         instrument,
                         volume,
                     }));
+                } else if col.note == 254 {
+                    // added even though volume 0 is not silent :)
+                    let channel: Channel;
+                    if self.module.channel_settings[channel_index] & 0x7F <= 15 { // is PCM channel
+                        channel = Channel::PCM(*self.pcm_channel_remap_table.get(&(self.module.channel_settings[channel_index] & 0x7F)).unwrap());
+                    } else {
+                        channel = Channel::FM((self.module.channel_settings[channel_index] & 0x7F)-16);
+                    }
+
+                    commands.push(format_c67::C67PatternCommand::SetVolume(SetVolumeCommand {
+                        channel,
+                        volume: 0,
+                    }));
                 } else if col.vol <= 64 {
                     let channel: Channel;
                     if self.module.channel_settings[channel_index] & 0x7F <= 15 { // is PCM channel
@@ -285,7 +298,7 @@ impl<'a> Converter<'a> {
 
                     commands.push(format_c67::C67PatternCommand::SetVolume(SetVolumeCommand {
                         channel,
-                        volume: if col.note == 254 {0} else {(col.vol/4).clamp(0, 15)},
+                        volume: (col.vol/4).clamp(0, 15),
                     }));
                 }
             }
