@@ -5,8 +5,6 @@ use std::{
 };
 use anyhow::{Result, anyhow};
 
-use crate::adlib::AdlibInstrument;
-
 #[derive(Debug)]
 pub struct S3MModule {
     // FILE STRUCTURE
@@ -92,50 +90,6 @@ pub struct S3MAdlibInstrument {
     pub _unused3: [u8;12],
     pub sample_name: [u8;28],
     pub _scri: [u8;4],
-}
-
-impl S3MAdlibInstrument {
-    pub fn to_universal(&self) -> AdlibInstrument {
-        let mut instrument = AdlibInstrument::default();
-
-        instrument.modulator.freq_multiplier = self.d00 & 0xF;
-        instrument.modulator.scale_envelope = self.d00 & 0x10 != 0;
-        instrument.modulator.enable_sustain = self.d00 & 0x20 != 0;
-        instrument.modulator.vibrato = self.d00 & 0x40 != 0;
-        instrument.modulator.tremolo = self.d00 & 0x80 != 0;
-
-        instrument.carrier.freq_multiplier = self.d01 & 0xF;
-        instrument.carrier.scale_envelope = self.d01 & 0x10 != 0;
-        instrument.carrier.enable_sustain = self.d01 & 0x20 != 0;
-        instrument.carrier.vibrato = self.d01 & 0x40 != 0;
-        instrument.carrier.tremolo = self.d01 & 0x80 != 0;
-
-        instrument.modulator.scale_level = ((self.d02 & 0xC0) >> 6).reverse_bits();
-        instrument.modulator.output_level = self.d02 & 0x3F;
-
-        instrument.carrier.scale_level = ((self.d03 & 0xC0) >> 6).reverse_bits();
-        instrument.carrier.output_level = self.d03 & 0x3F;
-
-        instrument.modulator.attack = self.d04 >> 4;
-        instrument.modulator.decay = self.d04 & 0xF;
-
-        instrument.carrier.attack = self.d05 >> 4;
-        instrument.carrier.decay = self.d05 & 0xF;
-
-        instrument.modulator.sustain = self.d06 >> 4;
-        instrument.modulator.release = self.d06 & 0xF;
-
-        instrument.carrier.sustain = self.d07 >> 4;
-        instrument.carrier.release = self.d07 & 0xF;
-
-        instrument.modulator.wave = self.d08;
-        instrument.carrier.wave = self.d09;
-
-        instrument.modulator.feedback = self.d0a >> 1;
-        instrument.modulator.connection = self.d0a & 1 != 0;
-
-        instrument
-    }
 }
 
 pub type S3MPattern = [S3MRow;64];
