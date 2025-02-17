@@ -200,6 +200,7 @@ impl<'a> Converter<'a> {
         for (row_index, row) in pattern.iter().enumerate() {
             let mut saved_instrument: u8 = 0;
             if row_index == 63 {
+                commands.push(format_c67::C67PatternCommand::Delay(1));
                 commands.push(format_c67::C67PatternCommand::End);
                 break;
             }
