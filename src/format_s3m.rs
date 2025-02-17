@@ -1,8 +1,5 @@
-use byteorder::{LittleEndian, NativeEndian, ReadBytesExt};
-use std::{
-    io::{self, Read, SeekFrom},
-    slice,
-};
+use byteorder::{LittleEndian, ReadBytesExt};
+use std::io::{self, SeekFrom};
 use anyhow::{Result, anyhow};
 
 #[derive(Debug)]

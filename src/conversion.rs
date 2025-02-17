@@ -1,6 +1,6 @@
 use std::{array, collections::HashMap};
 
-use crate::{format_c67::{self, serialize_pattern, C67FMRegisters, C67Module, C67ModuleHeader, C67SampleMetadata, Channel, PlayNoteCommand, SetVolumeCommand}, format_s3m::{S3MAdlibInstrument, S3MColumn, S3MInstrument, S3MModule, S3MPattern, S3MSample}};
+use crate::{format_c67::{self, serialize_pattern, C67FMRegisters, C67Module, C67SampleMetadata, Channel, PlayNoteCommand, SetVolumeCommand}, format_s3m::{S3MAdlibInstrument, S3MInstrument, S3MModule, S3MPattern, S3MSample}};
 
 pub struct Converter<'m> {
     module: &'m S3MModule,

@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write, env};
 
-use format_s3m::{S3MAdlibInstrument, S3MInstrument, S3MModule};
+use format_s3m::S3MModule;
 
 mod format_s3m;
 mod format_c67;
