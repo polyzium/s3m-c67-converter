@@ -218,24 +218,24 @@ impl<'a> Converter<'a> {
                     match &self.module.instruments[(saved_instrument-1) as usize] {
                         S3MInstrument::Adlib(instrument) => {
                             volume = instrument.volume;
-                            let index = self.module.channel_settings[channel_index] & 0x7F;
-                            if index > 26 {
+                            let channel_setting = self.module.channel_settings[channel_index] & 0x7F;
+                            if channel_setting > 26 {
                                 // Drum adlib channel
                                 continue;
                             }
-                            channel = Channel::FM(index-16);
+                            channel = Channel::FM(channel_setting-16);
                         }
                         S3MInstrument::Sample(sample) => {
                             volume = sample.volume;
-                            let index = self.module.channel_settings[channel_index] & 0x7F;
-                            let remapped_channel_num = self.pcm_channel_remap_table.get(&index);
+                            let channel_setting = self.module.channel_settings[channel_index] & 0x7F;
+                            let remapped_channel_num = self.pcm_channel_remap_table.get(&channel_setting);
 
                             let mut formatted_channel: String;
-                            if index >= 8 {
-                                formatted_channel = ((index - 8) + 1).to_string();
+                            if channel_setting >= 8 {
+                                formatted_channel = ((channel_setting - 8) + 1).to_string();
                                 formatted_channel.push('R');
                             } else {
-                                formatted_channel = (index + 1).to_string();
+                                formatted_channel = (channel_setting + 1).to_string();
                                 formatted_channel.push('L');
                             }
 
@@ -243,7 +243,7 @@ impl<'a> Converter<'a> {
                                 println!("Discarding note in channel {} as it is not mapped", formatted_channel);
                                 continue;
                             }
-                            channel = Channel::PCM(*self.pcm_channel_remap_table.get(&index).unwrap());
+                            channel = Channel::PCM(*self.pcm_channel_remap_table.get(&channel_setting).unwrap());
                         },
                     }
 
